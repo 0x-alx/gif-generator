@@ -25,6 +25,13 @@ const generateCountdown = () => {
 
 app.use(express.static("public"));
 
+app.use((req, res, next) => {
+	if (req.url.startsWith("/public/")) {
+		console.log(`Image demandée: ${req.url}`);
+	}
+	next();
+});
+
 app.get("/", (req, res) => {
 	res.send("Target reports sent successfully");
 	generateCountdown();
