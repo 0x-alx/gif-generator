@@ -23,14 +23,14 @@ const generateCountdown = () => {
 	);
 };
 
-app.use(express.static("public"));
-
 app.use((req, res, next) => {
-	if (req.url.startsWith("/")) {
+	if (req.url === "/screen.png") {
 		console.log(`Image demandée: ${req.url}`);
 	}
 	next();
 });
+
+app.use(express.static("public"));
 
 app.get("/", (req, res) => {
 	res.send("Target reports sent successfully");
