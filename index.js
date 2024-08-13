@@ -26,7 +26,7 @@ const generateCountdown = () => {
 app.use(express.static("public"));
 
 app.use((req, res, next) => {
-	if (req.url.startsWith("/public/")) {
+	if (req.url.startsWith("/")) {
 		console.log(`Image demandée: ${req.url}`);
 	}
 	next();
