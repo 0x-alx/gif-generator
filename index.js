@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
 const cron = require("node-cron");
+const fs = require("fs");
 
 const futureDate = new Date("2024-12-31T23:59:59");
 
@@ -25,7 +26,7 @@ const generateCountdown = () => {
 
 app.use((req, res, next) => {
 	if (req.url === "/screen.png") {
-		console.log(`Image demandée: ${req.url}`);
+		generateCountdown();
 	}
 	next();
 });
@@ -34,7 +35,6 @@ app.use(express.static("public"));
 
 app.get("/", (req, res) => {
 	res.send("Target reports sent successfully");
-	generateCountdown();
 });
 
 app.listen(3000, () => {
