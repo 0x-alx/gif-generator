@@ -234,16 +234,14 @@ app.use(express.static("public"));
 
 app.get("/", (req, res) => {
 	res.send("Target reports sent successfully");
-	setInterval(() => {
-		const time = generateCountdown();
-		generateImage(time);
-	}, 60000); // 60000 ms = 60 seconds
-	const time = generateCountdown();
-	generateImage(time);
 });
 
 app.listen(3000, () => {
 	console.log("Server is running on port 3000");
+	setInterval(() => {
+		const time = generateCountdown();
+		generateImage(time);
+	}, 60000); // 60000 ms = 60 seconds
 });
 
 // cron.schedule("0/1 * * * * *", generateCountdown);
