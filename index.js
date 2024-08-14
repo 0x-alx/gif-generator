@@ -241,7 +241,7 @@ app.listen(3000, () => {
 	setInterval(() => {
 		const time = generateCountdown();
 		generateImage(time);
-	}, 60000); // 60000 ms = 60 seconds
+	}, 300000); // 60000 ms = 60 seconds
 });
 
 // cron.schedule("0/1 * * * * *", generateCountdown);
