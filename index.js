@@ -222,18 +222,24 @@ const generateCountdown = () => {
 	return { days, hours, minutes, seconds };
 };
 
-app.use((req, res, next) => {
-	if (req.url === "/output.gif") {
-		const time = generateCountdown();
-		generateImage(time);
-	}
-	next();
-});
+// app.use((req, res, next) => {
+// 	if (req.url === "/output.gif") {
+// 		const time = generateCountdown();
+// 		generateImage(time);
+// 	}
+// 	next();
+// });
 
 app.use(express.static("public"));
 
 app.get("/", (req, res) => {
 	res.send("Target reports sent successfully");
+	setInterval(() => {
+		const time = generateCountdown();
+		generateImage(time);
+	}, 60000); // 60000 ms = 60 seconds
+	const time = generateCountdown();
+	generateImage(time);
 });
 
 app.listen(3000, () => {
