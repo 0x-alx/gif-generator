@@ -223,7 +223,7 @@ const generateCountdown = () => {
 };
 
 app.use((req, res, next) => {
-	if (req.url === "/output.png") {
+	if (req.url === "/output.gif") {
 		const time = generateCountdown();
 		generateImage(time);
 	}
