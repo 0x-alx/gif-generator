@@ -154,8 +154,8 @@ const generate = async (imagePaths) => {
 		imagePaths.map(async (paths, index) => {
 			await sharp({
 				create: {
-					width: 9000,
-					height: 1300,
+					width: 1800,
+					height: 250,
 					channels: 3,
 					background: { r: 255, g: 255, b: 255 },
 				},
@@ -163,10 +163,10 @@ const generate = async (imagePaths) => {
 				.composite(
 					paths.map((image, index) => ({
 						input: image,
-						left: 900 * index,
+						left: 400 * index,
 						top: 0,
-						width: 900,
-						height: 1300,
+						width: 400,
+						height: 250,
 					}))
 				)
 				.toFormat("png", { quality: 100 })
@@ -181,8 +181,8 @@ const generate = async (imagePaths) => {
 
 const generateGif = async () => {
 	console.log("Generating gif");
-	const encoder = new GIFEncoder(9000, 1300);
-	const canvas = createCanvas(9000, 1300);
+	const encoder = new GIFEncoder(1600, 250);
+	const canvas = createCanvas(1600, 250);
 	const ctx = canvas.getContext("2d");
 	console.log("Step 1");
 	encoder.start();
@@ -194,7 +194,7 @@ const generateGif = async () => {
 		const imagePath = path.join(__dirname, `public/output-${i}.png`);
 		console.log(imagePath);
 		const img = await loadImage(imagePath);
-		ctx.drawImage(img, 0, 0, 9000, 1300);
+		ctx.drawImage(img, 0, 0, 1600, 250);
 		encoder.addFrame(ctx);
 	}
 	console.log("Step 3");
@@ -241,7 +241,7 @@ app.listen(3000, () => {
 	setInterval(() => {
 		const time = generateCountdown();
 		generateImage(time);
-	}, 300000); // 60000 ms = 60 seconds
+	}, 60000); // 60000 ms = 60 seconds
 });
 
 // cron.schedule("0/1 * * * * *", generateCountdown);
