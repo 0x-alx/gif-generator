@@ -117,41 +117,25 @@ const generateImage = async (time) => {
 		time.match(/.{1,2}/g)
 	);
 
-	let pathBundle = [];
-	let imagePaths = [];
-	let counter = 0;
-
 	const images = formattedTimeArray.map((subArray) => {
-		return subArray.map((id) => {
+		return subArray.flatMap((id, index) => {
 			const imageObj = imageList.find((item) => item.id === id);
-			return imageObj ? imageObj.image : null;
+			const imagesArray = [imageObj.image];
+			if (index < subArray.length - 1) {
+				imagesArray.push("public/countdown-parts/_.png");
+			}
+			return imagesArray;
 		});
 	});
-
-	console.log(images);
-
-	// formattedTimeArray.map((time) =>
-	// 	time.map((itemq) => {
-	// 		if (counter < 4) {
-	// 			pathBundle.push(
-	// 				imageList.find((item) => item.id === itemq)?.image
-	// 			);
-
-	// 			counter++;
-	// 		} else {
-	// 			imagePaths.push(pathBundle);
-	// 			pathBundle = [];
-	// 			counter = 0;
-	// 		}
-	// 	})
-	// );
 
 	await generate(images);
 };
 
 const generate = async (imagePaths) => {
+	console.log("Generating frames ...");
 	await Promise.all(
 		imagePaths.map(async (paths, index) => {
+			let leftPosition = 0;
 			await sharp({
 				create: {
 					width: 1800,
@@ -161,15 +145,22 @@ const generate = async (imagePaths) => {
 				},
 			})
 				.composite(
-					paths.map((image, index) => ({
-						input: image,
-						left: 400 * index,
-						top: 0,
-						width: 400,
-						height: 250,
-					}))
+					paths.map((image, index) => {
+						if (index % 2 === 0 && index !== 0) {
+							leftPosition = leftPosition + 58;
+						} else if (index % 2 !== 0 && index !== 0) {
+							leftPosition = leftPosition + 391;
+						}
+						return {
+							input: image,
+							left: leftPosition,
+							top: 0,
+							width: 391,
+							height: 250,
+						};
+					})
 				)
-				.toFormat("png", { quality: 100 })
+				.toFormat("png", { quality: 50 })
 				.toBuffer()
 				.then((buffer) => {
 					fs.writeFileSync(`public/output-${index}.png`, buffer);
@@ -180,29 +171,25 @@ const generate = async (imagePaths) => {
 };
 
 const generateGif = async () => {
-	console.log("Generating gif");
+	console.log("Generating gif...");
 	const encoder = new GIFEncoder(1600, 250);
 	const canvas = createCanvas(1600, 250);
 	const ctx = canvas.getContext("2d");
-	console.log("Step 1");
 	encoder.start();
 	encoder.setRepeat(0); // 0 for repeat, -1 for no-repeat
 	encoder.setDelay(1000); // frame delay in ms
 	encoder.setQuality(10); // image quality, 10 is default
-	console.log("Step 2");
-	for (let i = 0; i < 24; i++) {
+	for (let i = 0; i < 30; i++) {
 		const imagePath = path.join(__dirname, `public/output-${i}.png`);
-		console.log(imagePath);
 		const img = await loadImage(imagePath);
 		ctx.drawImage(img, 0, 0, 1600, 250);
 		encoder.addFrame(ctx);
 	}
-	console.log("Step 3");
 	encoder.finish();
 
 	const buffer = encoder.out.getData();
 	fs.writeFileSync("public/output.gif", buffer);
-	console.log("Gif generated");
+	console.log("Gif generated with success !");
 };
 
 const generateCountdown = () => {
@@ -222,14 +209,6 @@ const generateCountdown = () => {
 	return { days, hours, minutes, seconds };
 };
 
-// app.use((req, res, next) => {
-// 	if (req.url === "/output.gif") {
-// 		const time = generateCountdown();
-// 		generateImage(time);
-// 	}
-// 	next();
-// });
-
 app.use(express.static("public"));
 
 app.get("/", (req, res) => {
@@ -238,6 +217,8 @@ app.get("/", (req, res) => {
 
 app.listen(3000, () => {
 	console.log("Server is running on port 3000");
+	const time = generateCountdown();
+	generateImage(time);
 	setInterval(() => {
 		const time = generateCountdown();
 		generateImage(time);
