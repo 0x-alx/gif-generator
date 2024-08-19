@@ -121,9 +121,6 @@ const generateImage = async (time) => {
 		return subArray.flatMap((id, index) => {
 			const imageObj = imageList.find((item) => item.id === id);
 			const imagesArray = [imageObj.image];
-			// if (index < subArray.length - 1) {
-			// 	imagesArray.push("public/countdown-parts/_.png");
-			// }
 			return imagesArray;
 		});
 	});
@@ -153,11 +150,11 @@ const generate = async (imagePaths) => {
 			imageWidths.push(imageWidth);
 
 			if (i !== 0) {
-				leftPosition += imageWidths[i - 1] + 32;
+				leftPosition += imageWidths[i - 1] + 64;
 			} else {
 				leftPosition += 0;
 			}
-			console.log(image);
+
 			composites.push({
 				input: image,
 				left: leftPosition,
@@ -169,7 +166,7 @@ const generate = async (imagePaths) => {
 
 		await sharp({
 			create: {
-				width: gifTotalWidth + 32 * 3,
+				width: gifTotalWidth + 64 * 3,
 				height: 136,
 				channels: 3,
 				background: { r: 255, g: 255, b: 255, alpha: 0 },
@@ -184,14 +181,39 @@ const generate = async (imagePaths) => {
 			.then((buffer) => {
 				fs.writeFileSync(`public/output-${index}.png`, buffer);
 			});
+
+		await sharp({
+			create: {
+				width: 896,
+				height: 178,
+				channels: 3,
+				background: { r: 255, g: 255, b: 255, alpha: 0 },
+			},
+		})
+			.composite([
+				{ input: `public/output-${index}.png`, left: 0, top: 0 },
+				{
+					input: "public/countdown-parts/label.png",
+					left: 0,
+					top: 148,
+				},
+			])
+			.threshold(240, { greyscale: false })
+			.unflatten()
+			.toFormat("png", { quality: 100 })
+			.toBuffer()
+			.then((buffer) => {
+				fs.writeFileSync(`public/output--${index}.png`, buffer);
+			});
 	}
+
 	await generateGif();
 };
 
 const generateGif = async () => {
 	console.log("Generating gif...");
-	const encoder = new GIFEncoder(452, 172); // Augmenter la hauteur pour inclure l'image du bas
-	const canvas = createCanvas(452, 172);
+	const encoder = new GIFEncoder(896, 166); // Augmenter la hauteur pour inclure l'image du bas
+	const canvas = createCanvas(896, 166);
 	const ctx = canvas.getContext("2d");
 	encoder.start();
 	encoder.setRepeat(0); // 0 pour répéter, -1 pour ne pas répéter
@@ -199,18 +221,12 @@ const generateGif = async () => {
 	encoder.setQuality(100);
 	encoder.setTransparent(255, 255, 255); // qualité de l'image, 10 est par défaut
 
-	const labelImagePath = path.join(
-		__dirname,
-		"public/countdown-parts/label.png"
-	);
-	const labelImg = await loadImage(labelImagePath);
-
 	for (let i = 0; i < 30; i++) {
-		const imagePath = path.join(__dirname, `public/output-${i}.png`);
+		const imagePath = path.join(__dirname, `public/output--${i}.png`);
 		const img = await loadImage(imagePath);
-		ctx.clearRect(0, 0, canvas.width, canvas.height); // Effacer le canvas avant de dessiner
-		ctx.drawImage(img, 0, 0, 452, 136); // Dessiner l'image principale
-		ctx.drawImage(labelImg, 0, 142, 452, 15); // Dessiner l'image du bas
+
+		ctx.drawImage(img, 0, 0, 896, 166); // Dessiner l'image principale
+
 		encoder.addFrame(ctx);
 	}
 	encoder.finish();
