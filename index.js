@@ -133,40 +133,55 @@ const generateImage = async (time) => {
 
 const generate = async (imagePaths) => {
 	console.log("Generating frames ...");
-	await Promise.all(
-		imagePaths.map(async (paths, index) => {
-			let leftPosition = 0;
-			await sharp({
-				create: {
-					width: 1800,
-					height: 250,
-					channels: 3,
-					background: { r: 255, g: 255, b: 255 },
-				},
-			})
-				.composite(
-					paths.map((image, index) => {
-						if (index % 2 === 0 && index !== 0) {
-							leftPosition = leftPosition + 58;
-						} else if (index % 2 !== 0 && index !== 0) {
-							leftPosition = leftPosition + 391;
-						}
-						return {
-							input: image,
-							left: leftPosition,
-							top: 0,
-							width: 391,
-							height: 250,
-						};
-					})
-				)
-				.toFormat("png", { quality: 50 })
-				.toBuffer()
-				.then((buffer) => {
-					fs.writeFileSync(`public/output-${index}.png`, buffer);
-				});
+
+	for (let index = 0; index < imagePaths.length; index++) {
+		let leftPosition = 0;
+		const paths = imagePaths[index];
+		const composites = [];
+		let imageWidths = [];
+		let gifTotalWidth = 0;
+
+		for (let i = 0; i < paths.length; i++) {
+			const image = paths[i];
+			const getImageWidth = async (image) => {
+				const metadata = await sharp(image).metadata();
+				gifTotalWidth += metadata.width;
+				return metadata.width;
+			};
+
+			const imageWidth = await getImageWidth(image);
+			imageWidths.push(imageWidth);
+
+			if (i !== 0) {
+				leftPosition += imageWidths[i - 1];
+			} else {
+				leftPosition += 0;
+			}
+
+			composites.push({
+				input: image,
+				left: leftPosition,
+				top: 0,
+				width: imageWidth,
+				height: 250,
+			});
+		}
+
+		await sharp({
+			create: {
+				width: gifTotalWidth,
+				height: 250,
+				channels: 3,
+				background: { r: 255, g: 255, b: 255 },
+			},
 		})
-	);
+			.composite(composites)
+			.toFormat("png", { quality: 50 })
+			.toBuffer()
+			.then((buffer) => {
+				fs.writeFileSync(`public/output-${index}.png`, buffer);
+			});
+	}
 	await generateGif();
 };
 
@@ -193,10 +208,13 @@ const generateGif = async () => {
 };
 
 const generateCountdown = () => {
+	//Prend la date d'aujourd'hui
 	const DateNow = new Date();
 
+	//Calcule la différence entre la date d'aujourd'hui et la date cible
 	const timeDifference = futureDate - DateNow;
 
+	//Calcule le nombre de jours, heures, minutes et secondes entre les deux dates
 	const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
 	const hours = Math.floor(
 		(timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
@@ -212,17 +230,20 @@ const generateCountdown = () => {
 app.use(express.static("public"));
 
 app.get("/", (req, res) => {
-	res.send("Target reports sent successfully");
+	res.send("Connected to the server");
 });
 
 app.listen(3000, () => {
 	console.log("Server is running on port 3000");
+
+	//Génère le nombre de jours, heures, minutes et secondes entre les deux dates
 	const time = generateCountdown();
+
+	//Génère l'image
 	generateImage(time);
+
 	setInterval(() => {
 		const time = generateCountdown();
 		generateImage(time);
-	}, 60000); // 60000 ms = 60 seconds
+	}, 30000); // 60000 ms = 60 seconds
 });
-
-// cron.schedule("0/1 * * * * *", generateCountdown);
