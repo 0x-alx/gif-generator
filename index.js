@@ -172,11 +172,14 @@ const generate = async (imagePaths) => {
 				width: gifTotalWidth + 32 * 3,
 				height: 136,
 				channels: 3,
-				background: { r: 255, g: 255, b: 255 },
+				background: { r: 255, g: 255, b: 255, alpha: 0 },
 			},
 		})
 			.composite(composites)
-			.toFormat("png", { quality: 50 })
+			.threshold(240, { greyscale: false })
+			.unflatten()
+			.toFormat("png", { quality: 100 })
+
 			.toBuffer()
 			.then((buffer) => {
 				fs.writeFileSync(`public/output-${index}.png`, buffer);
@@ -193,7 +196,8 @@ const generateGif = async () => {
 	encoder.start();
 	encoder.setRepeat(0); // 0 for repeat, -1 for no-repeat
 	encoder.setDelay(1000); // frame delay in ms
-	encoder.setQuality(10); // image quality, 10 is default
+	encoder.setQuality(100);
+	encoder.setTransparent(255, 255, 255); // image quality, 10 is default
 	for (let i = 0; i < 30; i++) {
 		const imagePath = path.join(__dirname, `public/output-${i}.png`);
 		const img = await loadImage(imagePath);
