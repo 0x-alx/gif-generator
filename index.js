@@ -169,12 +169,12 @@ const generate = async (imagePaths) => {
 				width: gifTotalWidth + 64 * 3,
 				height: 136,
 				channels: 3,
-				background: { r: 255, g: 255, b: 255, alpha: 0 },
+				background: { r: 255, g: 255, b: 255, alpha: 1 },
 			},
 		})
 			.composite(composites)
-			.threshold(240, { greyscale: false })
-			.unflatten()
+			// .threshold(240, { greyscale: false })
+			// .unflatten()
 			.toFormat("png", { quality: 100 })
 
 			.toBuffer()
@@ -187,7 +187,7 @@ const generate = async (imagePaths) => {
 				width: 896,
 				height: 178,
 				channels: 3,
-				background: { r: 255, g: 255, b: 255, alpha: 0 },
+				background: { r: 255, g: 255, b: 255, alpha: 1 },
 			},
 		})
 			.composite([
@@ -198,8 +198,8 @@ const generate = async (imagePaths) => {
 					top: 148,
 				},
 			])
-			.threshold(240, { greyscale: false })
-			.unflatten()
+			// .threshold(240, { greyscale: false })
+			// .unflatten()
 			.toFormat("png", { quality: 100 })
 			.toBuffer()
 			.then((buffer) => {
@@ -218,8 +218,8 @@ const generateGif = async () => {
 	encoder.start();
 	encoder.setRepeat(0); // 0 pour répéter, -1 pour ne pas répéter
 	encoder.setDelay(1000); // délai de frame en ms
-	encoder.setQuality(100);
-	encoder.setTransparent(255, 255, 255); // qualité de l'image, 10 est par défaut
+	encoder.setQuality(10);
+	//  / qualité de l'image, 10 est par défaut
 
 	for (let i = 0; i < 30; i++) {
 		const imagePath = path.join(__dirname, `public/output--${i}.png`);
