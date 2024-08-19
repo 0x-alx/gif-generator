@@ -212,8 +212,8 @@ const generate = async (imagePaths) => {
 
 const generateGif = async () => {
 	console.log("Generating gif...");
-	const encoder = new GIFEncoder(896, 166); // Augmenter la hauteur pour inclure l'image du bas
-	const canvas = createCanvas(896, 166);
+	const encoder = new GIFEncoder(896, 178); // Augmenter la hauteur pour inclure l'image du bas
+	const canvas = createCanvas(896, 178);
 	const ctx = canvas.getContext("2d");
 	encoder.start();
 	encoder.setRepeat(0); // 0 pour répéter, -1 pour ne pas répéter
@@ -225,7 +225,7 @@ const generateGif = async () => {
 		const imagePath = path.join(__dirname, `public/output--${i}.png`);
 		const img = await loadImage(imagePath);
 
-		ctx.drawImage(img, 0, 0, 896, 166); // Dessiner l'image principale
+		ctx.drawImage(img, 0, 0, 896, 178); // Dessiner l'image principale
 
 		encoder.addFrame(ctx);
 	}
