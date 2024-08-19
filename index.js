@@ -157,7 +157,7 @@ const generate = async (imagePaths) => {
 			} else {
 				leftPosition += 0;
 			}
-
+			console.log(image);
 			composites.push({
 				input: image,
 				left: leftPosition,
@@ -190,25 +190,34 @@ const generate = async (imagePaths) => {
 
 const generateGif = async () => {
 	console.log("Generating gif...");
-	const encoder = new GIFEncoder(452, 68);
-	const canvas = createCanvas(452, 68);
+	const encoder = new GIFEncoder(452, 172); // Augmenter la hauteur pour inclure l'image du bas
+	const canvas = createCanvas(452, 172);
 	const ctx = canvas.getContext("2d");
 	encoder.start();
-	encoder.setRepeat(0); // 0 for repeat, -1 for no-repeat
-	encoder.setDelay(1000); // frame delay in ms
+	encoder.setRepeat(0); // 0 pour répéter, -1 pour ne pas répéter
+	encoder.setDelay(1000); // délai de frame en ms
 	encoder.setQuality(100);
-	encoder.setTransparent(255, 255, 255); // image quality, 10 is default
+	encoder.setTransparent(255, 255, 255); // qualité de l'image, 10 est par défaut
+
+	const labelImagePath = path.join(
+		__dirname,
+		"public/countdown-parts/label.png"
+	);
+	const labelImg = await loadImage(labelImagePath);
+
 	for (let i = 0; i < 30; i++) {
 		const imagePath = path.join(__dirname, `public/output-${i}.png`);
 		const img = await loadImage(imagePath);
-		ctx.drawImage(img, 0, 0, 452, 68);
+		ctx.clearRect(0, 0, canvas.width, canvas.height); // Effacer le canvas avant de dessiner
+		ctx.drawImage(img, 0, 0, 452, 136); // Dessiner l'image principale
+		ctx.drawImage(labelImg, 0, 142, 452, 15); // Dessiner l'image du bas
 		encoder.addFrame(ctx);
 	}
 	encoder.finish();
 
 	const buffer = encoder.out.getData();
 	fs.writeFileSync("public/output.gif", buffer);
-	console.log("Gif generated with success !");
+	console.log("Gif généré avec succès !");
 };
 
 const generateCountdown = () => {
