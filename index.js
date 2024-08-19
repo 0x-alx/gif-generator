@@ -121,9 +121,9 @@ const generateImage = async (time) => {
 		return subArray.flatMap((id, index) => {
 			const imageObj = imageList.find((item) => item.id === id);
 			const imagesArray = [imageObj.image];
-			if (index < subArray.length - 1) {
-				imagesArray.push("public/countdown-parts/_.png");
-			}
+			// if (index < subArray.length - 1) {
+			// 	imagesArray.push("public/countdown-parts/_.png");
+			// }
 			return imagesArray;
 		});
 	});
@@ -153,7 +153,7 @@ const generate = async (imagePaths) => {
 			imageWidths.push(imageWidth);
 
 			if (i !== 0) {
-				leftPosition += imageWidths[i - 1];
+				leftPosition += imageWidths[i - 1] + 32;
 			} else {
 				leftPosition += 0;
 			}
@@ -163,14 +163,14 @@ const generate = async (imagePaths) => {
 				left: leftPosition,
 				top: 0,
 				width: imageWidth,
-				height: 250,
+				height: 68,
 			});
 		}
 
 		await sharp({
 			create: {
-				width: gifTotalWidth,
-				height: 250,
+				width: gifTotalWidth + 32 * 3,
+				height: 68,
 				channels: 3,
 				background: { r: 255, g: 255, b: 255 },
 			},
@@ -187,8 +187,8 @@ const generate = async (imagePaths) => {
 
 const generateGif = async () => {
 	console.log("Generating gif...");
-	const encoder = new GIFEncoder(1600, 250);
-	const canvas = createCanvas(1600, 250);
+	const encoder = new GIFEncoder(448, 68);
+	const canvas = createCanvas(448, 68);
 	const ctx = canvas.getContext("2d");
 	encoder.start();
 	encoder.setRepeat(0); // 0 for repeat, -1 for no-repeat
@@ -197,7 +197,7 @@ const generateGif = async () => {
 	for (let i = 0; i < 30; i++) {
 		const imagePath = path.join(__dirname, `public/output-${i}.png`);
 		const img = await loadImage(imagePath);
-		ctx.drawImage(img, 0, 0, 1600, 250);
+		ctx.drawImage(img, 0, 0, 452, 68);
 		encoder.addFrame(ctx);
 	}
 	encoder.finish();
