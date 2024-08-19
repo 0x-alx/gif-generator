@@ -163,14 +163,14 @@ const generate = async (imagePaths) => {
 				left: leftPosition,
 				top: 0,
 				width: imageWidth,
-				height: 68,
+				height: 136,
 			});
 		}
 
 		await sharp({
 			create: {
 				width: gifTotalWidth + 32 * 3,
-				height: 68,
+				height: 136,
 				channels: 3,
 				background: { r: 255, g: 255, b: 255 },
 			},
@@ -187,8 +187,8 @@ const generate = async (imagePaths) => {
 
 const generateGif = async () => {
 	console.log("Generating gif...");
-	const encoder = new GIFEncoder(448, 68);
-	const canvas = createCanvas(448, 68);
+	const encoder = new GIFEncoder(452, 68);
+	const canvas = createCanvas(452, 68);
 	const ctx = canvas.getContext("2d");
 	encoder.start();
 	encoder.setRepeat(0); // 0 for repeat, -1 for no-repeat
