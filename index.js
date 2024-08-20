@@ -274,5 +274,5 @@ app.listen(3000, () => {
 	setInterval(() => {
 		const time = generateCountdown();
 		generateImage(time);
-	}, 30000); // 60000 ms = 60 seconds
+	}, 60000); // 60000 ms = 60 seconds
 });
