@@ -4,6 +4,8 @@ const GIFEncoder = require("gifencoder");
 const { createCanvas, loadImage } = require("canvas");
 const path = require("path");
 
+let gifTotalWidth = 0;
+
 const imageList = [
 	{ id: "00", image: "public/countdown-parts/00.png" },
 	{ id: "01", image: "public/countdown-parts/01.png" },
@@ -67,7 +69,7 @@ const imageList = [
 	{ id: "59", image: "public/countdown-parts/59.png" },
 ];
 
-//Fonction qui permet de formater une date YYMMDD
+//Fonction qui permet de formater une date YYMMDD ✅
 const formatDate = (date) => {
 	const year = date.getFullYear();
 	const month = (date.getMonth() + 1).toString().padStart(2, "0"); // Les mois sont de 0 à 11
@@ -75,7 +77,28 @@ const formatDate = (date) => {
 	return `${year}${month}${day}`;
 };
 
-const generateImage = async (time) => {
+//Fonction qui permet de calculer le temps restant avant une date donnée ✅
+const remainingTimeCalculator = (futureDate) => {
+	//Prend la date d'aujourd'hui
+	const DateNow = new Date();
+
+	//Calcule la différence entre la date d'aujourd'hui et la date cible
+	const timeDifference = futureDate - DateNow;
+	//Calcule le nombre de jours, heures, minutes et secondes entre les deux dates
+	const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+	const hours = Math.floor(
+		(timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+	);
+	const minutes = Math.floor(
+		(timeDifference % (1000 * 60 * 60)) / (1000 * 60)
+	);
+	const seconds = Math.floor((timeDifference % (1000 * 60)) / 1000);
+
+	return { days, hours, minutes, seconds };
+};
+
+//Fonction qui permet de générer un tableau de path d'images pour le décompte ✅
+const formatCountdownPartsPathsArray = async (time) => {
 	const timeArray = [];
 
 	for (let i = 0; i <= 30; i++) {
@@ -121,16 +144,19 @@ const generateImage = async (time) => {
 		timeArray.push(currentTime);
 	}
 
+	//Permet de formater le tableau de temps en un tableau de [DDHHMMSS, DDHHMMSS, DDHHMMSS, ...]
 	const formatTimeArray = () => {
 		return timeArray.map(
 			(time) => `${time.days}${time.hours}${time.minutes}${time.seconds}`
 		);
 	};
+
+	//Permet de formater le tableau de temps en un tableau de 2 caractères [[DD, HH, MM, SS], [DD, HH, MM, SS]...]
 	const formattedTimeArray = formatTimeArray().map((time) =>
 		time.match(/.{1,2}/g)
 	);
 
-	const images = formattedTimeArray.map((subArray) => {
+	const countdownPartsPathsArray = formattedTimeArray.map((subArray) => {
 		return subArray.flatMap((id) => {
 			const imageObj = imageList.find((item) => item.id === id);
 			const imagesArray = [imageObj.image];
@@ -138,10 +164,18 @@ const generateImage = async (time) => {
 		});
 	});
 
-	return images;
+	return countdownPartsPathsArray;
 };
 
-const generate = async (imagePaths, bu, endDate) => {
+//Fonction qui permet de récupérer la largeur d'une image ✅
+const getImageWidth = async (image) => {
+	const metadata = await sharp(image).metadata();
+	gifTotalWidth += metadata.width;
+	return metadata.width;
+};
+
+//Fonction qui permet de générer un GIF ✅
+const generateGIF = async (countdownPartsPathsArray, bu, endDate) => {
 	const encoder = new GIFEncoder(896, 178); // Augmenter la hauteur pour inclure l'image du bas
 	const canvas = createCanvas(896, 178);
 	const ctx = canvas.getContext("2d");
@@ -152,33 +186,27 @@ const generate = async (imagePaths, bu, endDate) => {
 	encoder.setDelay(1000); // délai de frame en ms
 	encoder.setQuality(10); // qualité de l'image, 10 est par défaut
 
-	const imagePath = path.join(
+	const countdownLabel = path.join(
 		__dirname,
 		`public/countdown-parts/labels/label-${bu}.png`
 	);
-	const img = await loadImage(imagePath);
+	const img = await loadImage(countdownLabel);
 	ctx.drawImage(img, 0, 148, 896, 30);
 
-	for (let index = 0; index < imagePaths.length; index++) {
+	for (let index = 0; index < countdownPartsPathsArray.length; index++) {
 		let leftPosition = 0;
-		const paths = imagePaths[index];
+		const countdownPartsPath = countdownPartsPathsArray[index];
 
-		let imageWidths = [];
-		let gifTotalWidth = 0;
+		let imageWidthArray = [];
 
-		for (let i = 0; i < paths.length; i++) {
-			const image = paths[i];
-			const getImageWidth = async (image) => {
-				const metadata = await sharp(image).metadata();
-				gifTotalWidth += metadata.width;
-				return metadata.width;
-			};
+		for (let i = 0; i < countdownPartsPath.length; i++) {
+			const image = countdownPartsPath[i];
 
 			const imageWidth = await getImageWidth(image);
-			imageWidths.push(imageWidth);
+			imageWidthArray.push(imageWidth);
 
 			if (i !== 0) {
-				leftPosition += imageWidths[i - 1] + 64;
+				leftPosition += imageWidthArray[i - 1] + 64;
 			} else {
 				leftPosition += 0;
 			}
@@ -198,28 +226,9 @@ const generate = async (imagePaths, bu, endDate) => {
 	);
 };
 
-const remainingTimeCalculator = (futureDate) => {
-	//Prend la date d'aujourd'hui
-	const DateNow = new Date();
-
-	//Calcule la différence entre la date d'aujourd'hui et la date cible
-	const timeDifference = futureDate - DateNow;
-	//Calcule le nombre de jours, heures, minutes et secondes entre les deux dates
-	const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
-	const hours = Math.floor(
-		(timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
-	);
-	const minutes = Math.floor(
-		(timeDifference % (1000 * 60 * 60)) / (1000 * 60)
-	);
-	const seconds = Math.floor((timeDifference % (1000 * 60)) / 1000);
-
-	return { days, hours, minutes, seconds };
-};
-
 module.exports = {
 	formatDate,
-	generateImage,
-	generate,
+	formatCountdownPartsPathsArray,
+	generateGIF,
 	remainingTimeCalculator,
 };

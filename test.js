@@ -1,6 +1,10 @@
 const express = require("express");
 const app = express();
-const { generateImage, generate, remainingTimeCalculator } = require("./utils");
+const {
+	formatCountdownPartsPathsArray,
+	generateGIF,
+	remainingTimeCalculator,
+} = require("./utils");
 
 const dotenv = require("dotenv");
 
@@ -24,7 +28,7 @@ app.listen(3000, async () => {
 			"-----------------------------------------------------------"
 		);
 		console.log("🔑 Key: ", key);
-		console.log("📅 Today Date: ", new Date()); // Affiche la date actuelle
+		console.log("📅 Today Date: ", new Date());
 		console.log("🎯 Target Date: ", new Date(process.env[key]));
 		console.log(
 			"⏱️  Remaining Time: ",
@@ -41,20 +45,23 @@ app.listen(3000, async () => {
 			"-----------------------------------------------------------"
 		);
 
-		//Génère l'image
-		const images = await generateImage(remainingTime);
+		//Formate le tableau des images paths en fonction du temps restant
+		const countdownPartsPathsArray = await formatCountdownPartsPathsArray(
+			remainingTime
+		);
 
-		await generate(images, "fr", process.env[key]);
+		//Génère les GIFs
+		await generateGIF(countdownPartsPathsArray, "fr", process.env[key]);
 		console.log("GIF FR generated successfully ✅");
-		await generate(images, "en", process.env[key]);
+		await generateGIF(countdownPartsPathsArray, "en", process.env[key]);
 		console.log("GIF EN generated successfully ✅");
-		await generate(images, "es", process.env[key]);
+		await generateGIF(countdownPartsPathsArray, "es", process.env[key]);
 		console.log("GIF ES generated successfully ✅");
-		await generate(images, "de", process.env[key]);
+		await generateGIF(countdownPartsPathsArray, "de", process.env[key]);
 		console.log("GIF DE generated successfully ✅");
-		await generate(images, "it", process.env[key]);
+		await generateGIF(countdownPartsPathsArray, "it", process.env[key]);
 		console.log("GIF IT generated successfully ✅");
-		await generate(images, "nl", process.env[key]);
+		await generateGIF(countdownPartsPathsArray, "nl", process.env[key]);
 		console.log("GIF NL generated successfully ✅ \n");
 	}
 
@@ -88,19 +95,20 @@ app.listen(3000, async () => {
 			);
 
 			//Génère l'image
-			const images = await generateImage(remainingTime);
+			const countdownPartsPathsArray =
+				await formatCountdownPartsPathsArray(remainingTime);
 
-			await generate(images, "fr", process.env[key]);
+			await generateGIF(countdownPartsPathsArray, "fr", process.env[key]);
 			console.log("GIF FR generated successfully ✅");
-			await generate(images, "en", process.env[key]);
+			await generateGIF(countdownPartsPathsArray, "en", process.env[key]);
 			console.log("GIF EN generated successfully ✅");
-			await generate(images, "es", process.env[key]);
+			await generateGIF(countdownPartsPathsArray, "es", process.env[key]);
 			console.log("GIF ES generated successfully ✅");
-			await generate(images, "de", process.env[key]);
+			await generateGIF(countdownPartsPathsArray, "de", process.env[key]);
 			console.log("GIF DE generated successfully ✅");
-			await generate(images, "it", process.env[key]);
+			await generateGIF(countdownPartsPathsArray, "it", process.env[key]);
 			console.log("GIF IT generated successfully ✅");
-			await generate(images, "nl", process.env[key]);
+			await generateGIF(countdownPartsPathsArray, "nl", process.env[key]);
 			console.log("GIF NL generated successfully ✅ \n");
 		}
 	}, 60000); // 60000 ms = 60 seconds
