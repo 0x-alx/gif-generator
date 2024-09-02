@@ -118,5 +118,7 @@ ehthumbs.db
 *.orig
 *.merge_file
 
+service-account.json
+
 # Start Generation Here
 # End Generation Here

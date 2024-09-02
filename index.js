@@ -1,18 +1,19 @@
 const express = require("express");
-const app = express();
 const {
 	formatCountdownPartsPathsArray,
 	generateGIF,
 	remainingTimeCalculator,
+	uploadToFirebaseStorage,
 } = require("./utils");
 
+const app = express();
 const dotenv = require("dotenv");
-
 dotenv.config();
 
 app.use(express.static("public"));
+app.use("/healthcheck", require("./routes/healthcheck.routes"));
 
-app.get("/", (req, res) => {
+app.get("/", (_req, res, _next) => {
 	res.send("Connected to the server");
 });
 

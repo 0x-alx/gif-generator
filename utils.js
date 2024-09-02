@@ -3,6 +3,12 @@ const sharp = require("sharp");
 const GIFEncoder = require("gifencoder");
 const { createCanvas, loadImage } = require("canvas");
 const path = require("path");
+const { Storage } = require("@google-cloud/storage");
+
+const storage = new Storage({
+	projectId: "projectname",
+	keyFilename: "service-account.json",
+});
 
 let gifTotalWidth = 0;
 
@@ -69,7 +75,7 @@ const imageList = [
 	{ id: "59", image: "public/countdown-parts/59.png" },
 ];
 
-//Fonction qui permet de formater une date YYMMDD ✅
+//Fonction qui permet de formater une date YYYYMMDD ✅
 const formatDate = (date) => {
 	const year = date.getFullYear();
 	const month = (date.getMonth() + 1).toString().padStart(2, "0"); // Les mois sont de 0 à 11
@@ -219,11 +225,36 @@ const generateGIF = async (countdownPartsPathsArray, bu, endDate) => {
 	}
 	encoder.finish();
 
-	const buffer = encoder.out.getData();
+	const buffer = await encoder.out.getData();
 	fs.writeFileSync(
 		`public/countdowns/${bu}/${formatDate(new Date(endDate))}.gif`,
 		buffer
 	);
+
+	let result = await uploadToFirebaseStorage(
+		`public/countdowns/${bu}/${formatDate(new Date(endDate))}.gif`,
+		`${formatDate(new Date(endDate))}.gif`,
+		bu
+	);
+	// console.log(result);
+};
+
+const uploadToFirebaseStorage = async (filepath, fileName, bu) => {
+	try {
+		const gcs = storage.bucket("gs://design-countdown-gif");
+		const storagepath = `${bu}/${fileName}`;
+
+		const result = await gcs.upload(filepath, {
+			destination: storagepath,
+			metadata: {
+				cacheControl: "no-cache",
+			},
+		});
+		return result[0].metadata.mediaLink;
+	} catch (error) {
+		console.log(error);
+		throw new Error(error.message);
+	}
 };
 
 module.exports = {
@@ -231,4 +262,5 @@ module.exports = {
 	formatCountdownPartsPathsArray,
 	generateGIF,
 	remainingTimeCalculator,
+	uploadToFirebaseStorage,
 };
